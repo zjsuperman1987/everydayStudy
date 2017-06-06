@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<h1>我是你大哥h1啊</h1>
+	<h1>我是负div</h1>
+	<p>1</p>
+	<p class="note">2</p>
+	<p>
+		3<a href="#">我是a</a>
+	</p>
+	<p class="note">4</p>
+	<div id="test">div0</div>
+	<p>
+		6<a href="#">我是a</a>
+	</p>
+	<p>7</p>
+	<p class="note">8</p>
+	<p>9</p>
+
+	<div>div1</div>
+	<div>div2</div>
+	<div>div3</div>
+
+	<div>4
+		<div class='in'>
+			<a href="#"></a>
+		</div>
+	</div>
+	
+	<div id="debug" style="background: gold;">我是数组链接</div>
+	<div class="debug" style="background: gold;">我是数组链接1</div>
+	<div class="debug" style="background: gold;">我是数组链接2</div2>
+
+	<script src="jquery1.12.4.min.js"></script>
+	<script type="text/javascript">
+	/*
+	$('p').filter('.note');
+	$('p').filter($('.note'));								//上面两个都等价$('div.not')
+	$('p').filter(function(idx){ return idx % 2 == 0; })	//等价于$('div:even')
+	$('p').has('a[href]')
+	*/
+	/*
+		add() 以下方式全部等价·找出div和p
+		$('div,p');
+		$('div').add('p');
+		$('div').add($('p'));
+		var paras = document.getElementsByTagName('p');
+		$('div').add(paras);
+	 */
+
+	 /*
+	 	1将选中元素集用作上下文
+		最通用的就是find() 他会在每一个当前选中元素的子孙元素中寻找与指定选择器字符串匹配的元素，然后它返回一个新的jQuery对象来表示所匹配的子孙元素集. 注意这些新选中的元素不会并入已存在的选中元素集中。同时注意find()和filter()不同，
+		filter()不会选中新元素·只是简单的将当前元素进行缩减。
+		$('div').find('p'); 在<div>中查找<p>元素 与$('div p');相同.
+
+		children(): 选中id 为 head footer 的元素的直接子元素 <span>
+		$('#header > span, #footer > span')
+		$('#header, #footer').children('span')
+
+		contents(): 与children()方法类似， 不同的是返回每一个元素的所有子节点包括文本节点· 如果选中元素有<iframe>元素，还会返回它的document对象。 注意不接受可选的选择器字符串参数· 
+
+		next(),prev() 后一个和前一个兄弟元素· 
+		$('h1').next(); 返回 下一个兄弟元素 ·
+		$('h11').siblings();
+
+		parent() parents()	寻找父元素· 里面可以带选择器 例如  $('a[href]').parents('p')
+
+		closest().元素的祖先元素中匹配选择器的最近的一个祖先元素. parentsUntil()所包裹什么的什么元素
+		$('a[href]').closest('div');
+		$('a[href]').parentsUntil(':not(div)')
+	  */
+	 
+	 /*
+	 	恢复到之前的选中元素集
+	 	end():  寻找所有<div>元素，然后再其中寻找<p>元素
+	 	高亮显示<div>元素，然后给div元素加个边框
+	 	var divs = $('div');
+	 	var paras = divs.find('p');
+	 	divs.addClass('highlight');
+	 	divs.css('border', 'solid black 1px');
+		如果采用链式调用来实现上面方法
+		$('div').find('p').addClass('highlight').end().css('border', "1px solid black");
+		调换顺序省略掉end();
+		$('div').css('border','1px solid black').find('p').addClass('highlinght');
+
+		如果想手动定义选中元素集· 同时保持end()方法兼容· 可以将新的元素集作为数组或类数组对象传递给pushStack()指定的元素会成为新的选中元素· 之前选中的元素则为压入栈中· 之后可以用end()方法还原它们
+		var self = $('div');									选取所有的div元素
+		self.pushStack(document.getElementsByTagName('p'));		修改为所有p元素· 压入
+		self.end();
+	  
+		andSelf(): 高亮显示p元素及其父节点中的div，然后给div元素添加边框
+		$('div').find('p').addClass('highlight').end().end()[弹出两次· 返回$('div')].css('border', "1px solid black");
+	  */
+	 
+	 /*
+	 	jQuery的插件扩展
+	 	jQuery.fn.println = function() {
+			var msg = Array.prototype.join.call(arguments, " ");	
+			this.each(function(){
+				jQuery(this).append(document.createTextNode(msg)).append("<br/>")
+			})
+			return this;
+	 	}
+	 	var x = 10, y = 20;
+		$(".debug").println("x = ", x, "; y = " , y);
+		"x =  10 ; y =  10";
+
+		用 "jquery.plugin.js"这种命名方法保存插件代码到一个文件中(将plugin替换为文件名)
+
+		插件可以给jQuery自身添加函数来增加新的工具函数 例如
+		//该方法输出其参数(使用println()插件方法)
+		//到id为 "debug"的元素中，如果不存在该元素·则创建一个并添加到文档中
+
+		jQuery.debug = function(){
+			var elt = jQuery('#debug');		//查找#debug元素
+			if(elt.length == 0){				//如果它不存在就创建一个
+				elt = jQuery("<div id='debug'><h1>Debugging Output</h1></div>");
+				jQuery(document.body).append(elt);
+			}
+			elt.println.apply(elt,arguments);
+		}
+		
+		//下面这个例子，定义了一个新的draggable·过滤器，可用来仅返回拥有
+		draggable=true属性元素·
+
+		jQquery.expr[":"] = function(e) { return e.draggable === true}
+		这样可以使用 $("img:draggable") 来选取可拖拽的图片.
+
+		从上面的代码可以看到，自定义选择器函数的第一个参数是候选的DOM元素.
+		如果该元素匹配选择器,则返回true；否则返回false。许多自定义选择器只需要这一个元素参数，但实际在调用他们的时候使用了4个参数
+		第二个参数是整数序号，表示当前元素在候选元素数组中的位置。候选元素数组作为第4个参数传入，选择器不应该修改它。第三个参数很有趣·他是调用RegExp.exec()方法后返回的数组。如果有的话，该数组第4个元素(序号是3)是伪类过滤器后面的圆括号中的值。圆括号和里面的任何引号都去除了·只留下参数字符串。
+		下面一个例子用来说明如果实现一个：data(x)伪类，该伪类只在元素拥有data-x
+		属性时返回true.
+		jQuery.expr[':'].data = function(element,index,match,array) {
+			//注意IE7及以前版本不支持hasAttribute()
+			return element.hasAttribute("data-"+match[3]);
+		}
+		
+		jQuery UI 类库
+		不是本书介绍范围
+	  */
+	 
+	 /*
+	 	客户端储存
+	 	var name = localStorage.username;		//查询一个存储的值
+	 	name = localStorage['username'];			//与上面等价
+	 	if(!name){
+			var name = prompt("what is your name");	//询问用户一个问题
+			loclaStorage.username = name;			//存储用户的答案
+	 	}	
+	 	for(var name in localStorage) {				//迭代所有存储的名字
+			var value = localStorage[name]			//查询每个名字对应的值
+	 	}
+
+	 	设置cookie
+	 	function setcookie (name,value,dayToLive) {
+			var cookie = name + "=" + encodeURIComponenet(value);
+			if(typeof dayToLive === "number"){
+				cookie += "; max-age=" + (dayToLive*60*60*24)
+				document.cookie = cookie; 
+			} 
+	 	}
+
+		同样的如果要设置cookie的path domain secure
+		; path = path
+		; domain = domain
+		; secure = secure
+
+		改变cookie的值· 重新设置覆盖就行· 取消可以设置非空值·但max-age设置为0；
+		然后重新设置cookie的值
+
+		例20-1定义了一个getcookie()函数，该函数将document.cookie属性解析出来，
+		将对应的名/值对存储到一个对象中，函数最后返回该对象
+		例20-1： 解析document.cookie属性值
+		//将document.cookie的值以名/值对组成的一个对象返回
+		//建设存储cookie的值的时候是以encodeURIComponent()编码的
+		function getcookie(){
+			var cookie = {}						//最后要返回的cookie的值
+			var all = document.cookie;			//查找docuemnt.cookie
+			if(all === "")						//如果为空
+				return cookie;					//直接返回
+			var list = all.split("; ");			//分割'; '成数组 
+			for(var i = 0; i < list.length; i++) {		//遍历每个cookie
+				var cookie = list[i];
+				var p = cookie.indexOf("=");
+				var name = cookie.substring(0,p)
+				var value = cookie.substring(p + 1);
+				value = decodeURIComponent(value);
+				cookie[name] = value;
+			}
+			return cookie;
+		}
+		
+		cookie·················局限性: 标准是不超过20个每个大小不超过4kb 但现在很多浏览器总数超过300个单有些还是限制在4kb
+	
+		例如20-2：实现基于cookie的存储
+		实现基于cookie存储API
+		本类实现localStorage和sessionStorage一样的存储API。 但是基于http cookie实现它
+		debugger
+		function cookieStorage(maxage,path){	//两个参数一个是有效期，一个是作用域
+			//获取一个存储cookie信息的对象
+			var cookie = (function(){			//即使调用函数·类似之前的getcookie()函数
+				var cookie = {}					//该对象最终返回
+				var all = document.cookie;		//以打字符串的形式获取所有cookie
+				if(all === "")					//如果cookie没设置
+					return cookie;				//返回一个空对象
+				var list = all.split("; ")	//分割字符串"; "成数组存储的 a=b 的值
+				for(var i  = 0; i < list.length; i++) {		//遍历每个cookie
+					var cookie = list[i];					//得到每个名值对 "a=b"
+					var p = cookie.indexOf("=");			//字符串找位置
+					var name = cookie.substring(0,p);		//从0到p
+					var value = cookie.substring(p + 1);
+					value = decodeURIComponent(value);
+					cookie[name] = value;
+				}
+				return cookie;
+			}());
+			//将所有cookie的名字存储到一个数组中
+			var keys = [];
+			for(var key  in cookie) keys.push(key);
+
+			//现在定义存储API公共的属性和方法
+
+			//存储cookie的个数
+			this.length = keys.length;
+
+			//返回n个cookie的名字，如果n越界则返回null
+			this.key = function(n) {
+				if(n < 0 || n >= keys.length) return null;
+				return keys[n];
+			}
+
+			//返回指定名字的cookie值，如果不存在则返回null
+			this.getItem = function(name) {
+				return cookie[name] || null;
+			}
+
+			//存储cookie的值
+			this.setItem = function(key,value) {
+				if(!cookie) cookie = {};	//这里是自己加的不然报错
+				if(!(key in cookie)) {		//如果要存储的cookie不存在
+					keys.push(key);			//将名字存储到keys数组中
+					this.length++;			//将长度加一
+				}
+				//将该名值对存储到cookie中
+				cookie[key] = value;
+
+				//开始正式设置cookie
+				//首先将要存储的cookie的值进行编码，然后创建一个 名字=编码后的值 的字符串
+				var cookie = key + "=" + encodeURIComponent(value);
+
+				//将cookie的属性也加入到该字符串中
+				if(maxage) cookie += "; max-age=" + maxage;
+				if(path)   cookie += "; path=" + path;
+				
+				//通过document.cookie来设置cookie
+				document.cookie = cookie;
+			};
+			//删除指定的cookie
+			this.removeItem = function(key) {
+				if(!(keys[key])) return;	//如果cookie不存在则什么也不做
+				//从内部维护的cookie组删除指定的cookie
+				delete cookie[key];
+				//同时将cookie的名字也从cookie中删除·
+				//如果使用ES5的indexOf()方法会更简单
+				//{
+					//var pos = keys.indexOf(key);
+					//keys.slice(pos,1);
+				//}
+				
+				for(var i = 0; i < keys.length; i += 1) {		//遍历所有名字
+					if(keys[i] === key) {						//当找到要找的那个
+						keys.splice(i,1)							//将它从数组中删除
+						break;
+					}
+				}
+				this.length--;									//个数减1
+
+				//最终将cookie值设置为空字符串以及将有效期设置为0来删除指定cookie
+				document.cookie = key + "=; max-age=0";
+			}
+			//删除所有的cookie
+			this.clear = function() {
+				//循环所有的cookie名字，并将cookie删除
+				for(var i = 0; i < keys.length; i += 1) {
+					document.cookie = key[i] + "=; max-age=0";
+				}
+				//重置所有内部状态
+				cookie = {};
+				keys = [];
+				this.length = 0;
+			}
+		}
+		var a = new cookieStorage(86400,"http://www.baidu.com")
+		a.setItem('x',123);
+	  */
+	 
+	  /*
+	  		利用IE userData 持久化数据 只在IE浏览器有效
+	  		ie5及以上的版本使用一个docment后面跟 "DHTML行为" 来实现客户端存储 以下代码
+	  		var memory = document.createElement("div");		//创建一个div
+	  		memory.id = "_memory";							//设置id
+	  		memory.style.display = "none";					//将其隐藏
+	  		memory.style.behavior = "url('#default#userData')";		//附加userData行为
+	  		document.body.appendChild(memory);					//将其添加到document中
+			
+			memory.load("myStoredData");					//根据指定名· 载入对应数据
+			var name = memory.getAttribute('username');		//获取其中的数据片段
+			if(!name){										//如果没有指定数据
+				name = prompt('what is your name');			//获取用户输入
+				memory.setAttribute("username", name);		//将其设置成memory的一个属性
+				memory.save("myStoredData");				//保存它方便下次使用
+			}
+
+			var now = (new Date()).getTime();
+			var expires = now + 100 * 24 * 60 * 60 * 1000;
+			expires = new Date(expires).toUTCString();
+			memory.expires = expires 						//设置·memory.expires
+	   
+	   */
+	  		/*
+	   		<!--if[IE]>
+				<script src="UserDataStorage.js">
+					基于IE的 userData实现部分存储API
+					//创建一个document元素并附加userData行为
+					//因此该元素可以获得save() load()方法
+					function userDataStroage(maxage) {
+						var memory = document.createElement('div');
+						memory.style.display = 'none'			//设置隐藏
+						memory.style.behavior = "url('#default#userData')" //附加userData行为
+						document.body.appendChild(memory);
+
+						//如果传递maxage参数(单位为秒) 则将其设置成userData的有效期，单位为毫秒
+						if(maxage){
+							var now = (new Date()).getTime();
+							var expires = now + maxage * 1000;
+							memory.expires = new Date(expires).toUTCString();
+						}
+						//通过载入存储的数据来初始化memory元素
+						//参数是任意的· 只要在保存的时候存在就可以了
+						memory.load("UserDataStorage");				//载入存储的数据
+
+						this.getItem = function(key) {					//通过属性来获取保存的值
+							return memory.getAttribute(key) || null;
+						};
+						this.setItem = function(key,value) {
+							memory.setAttribute(key,value) 			//以设置属性的形式来保存数据
+							memory.save("UserDataStorage");			//保存数据改变后的状态
+						}
+						this.removeItem = function(key) {
+							memory.removeAttribute(key)				//删除存储数据
+							memory.save("UserDataStorage");
+						}
+					}
+				</script>
+			<![endif]-->
+			*/
+	</script>
+	<script>
+		/*
+			20.4应用程序缓存和离线web应用
+			20.4.1 应用程序缓存清单
+			想要将应用程序 安装 到应用程序缓存中· 需要先创建一份应用程序清单·
+			包含了所有应用程序依赖的URL列表· 然后通过HTML页面<html>标签的
+			manifest属性· 指向该清单文件就行了
+			<!DOCTYPE HTML>
+			<html manifest="myapp.appcache">
+			<head></head>
+			<body></body>
+			</html>
+			如果下所示是一份简单的清单文件
+			CACHE MANIFEST 		//必须开头
+			# 上一行标识此文件是一份清单文件·本行是注释
+
+			# 下面的内容都是应用程序依赖的资源文件的URL
+			myapp.html
+			myapp.js
+			myapp.css
+			images/background.png
+ 			
+ 			缓存清单的MIME类型
+ 			应用程序缓存清单约定是以 .appcache 作为文件扩展名的·但也只是约定·
+ 			web服务器真正识别清单的方式是通过 text/cache-manifest 这个MIME类型
+ 			的一个清单。
+ 			如果服务器将清单文件的Content-Type头设置成其他的MIME类型·那么就不会缓存应用程序了·
+ 			因此可能需要对web服务器做一定的配置来使用这个MIME类型，比如在web应用
+ 			目录下的创建apache服务器的一个 .htaccess文件。
+
+ 			清单文件包含要缓存的应用的标识。
+ 			如果一个web应用有很多web页面(用户可以访问多个HTML页面)，那么每个HTML
+ 			页面就需要设置<html manifest=>指向清单文件。
+ 			将这些不同的文件都指向一份清单文件·可以清楚的表达他们都是要缓存起来的，同时他们又是来自同一个web应用。
+ 			如果一个应用只有少量的html页面·那可以显示的把他们列在文件清单中·
+ 			但这不是强制的：会认为任何链接到清单文件的文件都是web应用的一部分
+			并会随着应用程序一起缓存起来
+
+			像之前提到的一个简单的清单必须列出web应用依赖的所有资源
+			一旦一个web应用首次下载下来并缓存·之后任何加载请求都来自缓存。
+			从缓存中去载入一个应用资源的时候·就要求它请求的任何资源必要在清单中
+			不会载入不在清单中的资源。
+			这种政策由点离线的问道。
+			如果一个简单的缓存起来的应用·能够从缓存中载入并运行。那么它也可以在
+			浏览器离线的状态运行。
+			通常情况下·一些复杂的web应用，无法把他们依赖的所有资源都缓存起来
+			如果它们也有一个复杂的清单的话。同样可以使用应用程序缓存。
+
+			复杂清单
+			一个应用从应用程序缓存中载入的时候，只有其清单文件中列举出来的资源会载入。
+			前面列子中的清单文件一次列举一个资源URL。
+			事实上清单文件还有比这更复杂的写法·列举资源的方式也还有另外两种。
+			在清单文件中可以使用特殊的区域头来标识头信息之后清单项的类型
+			像该列中列出的许多简单缓存项都事实上都属于 "CACHE" 区域，这也是默认的区域
+			另外两个区域是以 "Network:" 和 "FALLBACK:" 头信息开始的(一个清单可以有任意数量的区域，并且在两个相邻的区域之间可以根据需要互相切换)
+
+			"Network:" 标识了该区域的资源从不缓存 必须要从网络获取
+			通常会将一些服务端的脚本放在 "Network" 区域中，而实际该区域中资源的
+			URL都只是URL前缀，用来标识以此URL开头的资源都要通过网络加载
+			当然如果浏览器处于离线状态·加载都会失败。
+			"Nettwork:"区域中的URL还支持*通配符·该通配符标识任何不在清单中的资源浏览器都会通过网络加载
+			这实际违反了一条规则·缓存应用程序必须要在清单中列举出所有应用相关的资源
+
+			"FALLBACK:" 区域中的清单项每行都包含两个URL。
+			第二个URL是指需要加载和存储在缓存中的资源，第一个URL是一个前缀。
+			任何会匹配到该前缀的URL都不会缓存起来·可能的话 会从网络中载入
+			如果从网络中载入这样一个URL失败的话·就会使用第二个URL指定的缓存资源来替代，从缓存中获取。
+			想象一个web应用包含一定数量的视频教程。
+			这些视频都很大，显然把它们缓存到本地是不合适的
+			因此在离线状态下，通过清单文件'FALLBACK:'区域，就可以使用一些基于文本的帮助文件来替代了
+			下面是一些更加发杂的缓存清单
+			CACHE MANIFEST
+
+			CACHE:
+			myapp.html
+			myapp.js
+			myapp.css
+
+			FALLBACK:
+			videos/offline_help.html
+		
+			NETWORK:
+			cgi/
+			
+			20.4.2缓存的更新
+			applicationCache.onupdateready = function() {
+				var reload = confirm("A new version of this application is available\n" +
+				"and will be used the next time to reload\n" +
+				"Do you want to reload now?")
+
+				if(reload) window.reload()
+			}
+
+			例20-4：处理应用缓存相关事件
+			//下面所有的事件处理程序都使用此函数来显示状态消息
+			//由于都是通过调用status函数来显示状态，因此所有处理程序都返回false来阻止浏览器
+
+			//显示其默认状态消息
+			function status(msg) {
+				//将消息输出到statusline的文档元素中
+				document.getElementById("statusline").innerHTML = msg;
+				console.log(msg);	//同时在控制台输出此消息，便于调试
+			}
+			//每当应用程序载入的时候，都会检测清单文件
+			//也首先触发checking事件
+			window.applicationCache.onchecking = function(){
+				status("Checking for a new version.");
+				return false;
+			};
+			//如果清单文件没有改动，同时应用程序也已经缓存了
+			//"noupdate"事件会被触发，整个过程结束。
+			window.applicationCache.onnoupdate = function(){
+				status("This version is up-to-date")
+				return false;
+			}
+			//如果还未缓存应用程序，或者清单文件有改动
+			//那么浏览器会下载并缓存清单中的资源
+			//触发"downloading"事件。同时意味着下载过程
+			window.applicationCache.ondownloading = function(){
+				status("Downing new version");
+				window.progresscount = 0;	//在下面的progress事件处理程序会用到
+				return false;
+			}
+			//在下载过程中会间断性的触发progress事件
+			//通常是在每个文件下载完毕的时候
+			window.applicationCache.onprogress = function(e) {
+				//事件对象应当是process事件（就像那些被xhr2使用的）
+				//通过该对象可以计算出下载完成比列，但是，如果他不是process事件
+				//我们统计调用次数
+				var process = "";
+				if(e && e.lengthComputable) //process事件：计算下载完成比例
+					progress = " " + Math.round(100 * e.loaded / e.total) + "%"
+				else //否则，输出调用次数
+					progress = " (" + ++progresscount + ")";
+					status("Downloading new version" + progress);
+					return false;	 
+			}
+			//当下载完成，并缓存中的应用程序更新后，浏览器会触发"updateready"
+			事件 要注意的是：触发此事件的时候用户仍然可以看到老版本的应用程序
+			window.applicationCache.onupdateready = function() {
+				status("A new version has been downloaded. Reload to run it");
+				return false;
+			}
+			//如果浏览器处于离线状态，检测清单列表失败，则会触发error事件
+			window.applicationCache.onerror = function() {
+				status("Couldn't load manifest or cache applicaiton");
+				return false;
+			}
+			//如果以个缓存的应用程序引用一个不储存在的清单文件·
+			//会触发"obsolete"事件。同时会将应用从缓存中移除以后都不会
+			通过缓存而是网络来加载资源
+			window.applicationCache.onobsolete = function () {
+				status("this application is nolonger cached." +
+				"Reload to get the latest version from the network.");
+				return false;
+			}
+
+
+ 		 */
+	</script>
+</body>
+</html>
